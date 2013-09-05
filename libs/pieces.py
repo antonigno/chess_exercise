@@ -1,12 +1,17 @@
-class InvalidMovement(Exception): pass #TODO
-
-class InvalidSteps(Exception): pass #TODO
-
-class InvalidPiece(Exception): pass #TODO
+class InvalidMovement(Exception):
+    pass  # TODO
 
 
-class PieceFactory( object ):
-    def newPiece( self, name , quantity):
+class InvalidSteps(Exception):
+    pass  # TODO
+
+
+class InvalidPiece(Exception):
+    pass  # TODO
+
+
+class PieceFactory(object):
+    def newPiece(self, name, quantity):
         piece_list = []
         for i in range(quantity):
             if name in ('king', 'K'):
@@ -46,17 +51,18 @@ class Piece(object):
             self.steps = steps
         else:
             raise InvalidSteps
-    
+
     def getMoveSet(self):
         moves = ()
         if self.horizontal:
             moves += ((-1, 0), (1, 0))
         if self.vertical:
-            moves += ((0,-1), (0, 1))
+            moves += ((0, -1), (0, 1))
         if self.diagonal:
             moves += ((-1, -1), (-1, 1), (1, -1), (1, 1))
         if self.L:
-            moves += ((-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
+            moves += ((-2, -1), (-2, 1), (-1, -2),
+                      (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
         return moves
 
     def getSteps(self):
@@ -69,13 +75,17 @@ class Piece(object):
 class King(Piece):
     def __init__(self):
         self.short_name = "K"
-        super(King, self).__init__('king', ('horizontal', 'vertical', 'diagonal'), 1)
-        
+        super(King, self).__init__('king', ('horizontal',
+                                            'vertical',
+                                            'diagonal'), 1)
+
 
 class Queen(Piece):
     def __init__(self):
         self.short_name = "Q"
-        super(Queen, self).__init__('queen', ('horizontal', 'vertical', 'diagonal'), 'infinite')
+        super(Queen, self).__init__('queen', ('horizontal',
+                                              'vertical',
+                                              'diagonal'), 'infinite')
 
 
 class Bishop(Piece):
@@ -93,4 +103,5 @@ class Knight(Piece):
 class Rook(Piece):
     def __init__(self):
         self.short_name = "R"
-        super(Rook, self).__init__('rook', ('horizontal', 'vertical'), 'infinite')
+        super(Rook, self).__init__('rook', ('horizontal',
+                                            'vertical'), 'infinite')

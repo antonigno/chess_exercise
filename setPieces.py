@@ -4,7 +4,7 @@ from copy import deepcopy, copy
 import optparse
 
 
-class BoardConfigurations( object ):
+class BoardConfigurations(object):
 
     def __init__(self, board, piece_list):
         self.output_boards = {}
@@ -12,6 +12,8 @@ class BoardConfigurations( object ):
         self.analysed_configurations = {}
         self.skipped_analysis = 0
         self.analysed_configuration_count = 0
+        self.piece_count = len(piece_list)
+        self.solution_tree = {}
 
     def getOutputBoardList(self):
         return self.output_boards
@@ -22,32 +24,18 @@ class BoardConfigurations( object ):
         '''
         for c in config.split():
             v, k = c.split(":")
-            print "%s: %s" %(k, v)
-#        print config.split()
-        
+            print "%s: %s" % (k, v)
+
     def setPieceList(self, piece_list, board):
         '''
         recursively parse board configurations for the piece list.
-        returns a list of all unique configurations found, expressed as board objecs
+        returns a list of all unique configurations found,
+        expressed as board objecs
         '''
-    
-        # the following commented code is an attempt to skip already analysed configuration
-        # commented out because on big boards the overload introduced wasn't worth the time spared
-        # TODO find a more convenient way to reduce elaboration time
-    
-        # check if this configuration has been analysed already
-        #configuration_repr = board.toString()+"".join([piece.short_name for piece in piece_list])
-        #if configuration_repr in self.analysed_configurations:
-#       #     print "already analysed configuration "+configuration_repr
-        #    self.skipped_analysis += 1
-        #    return
-        #else:
-            #print configuration_repr
-        #    self.analysed_configurations[configuration_repr] = 1
-        #    print "configuration analized: %d, skipped analysis: %d" % (len(self.analysed_configurations.keys() ), self.skipped_analysis) 
-        # check if piece_list is empty
+
         if self.analysed_configuration_count % 100000 == 0:
-            print "Analysed configurations: %d, continuing..." % self.analysed_configuration_count
+            print "Analysed configurations: %d, continuing..."\
+            % self.analysed_configuration_count
         self.analysed_configuration_count += 1
         if len(piece_list) == 0:
 #            print "no more pieces remaining"
@@ -61,15 +49,32 @@ class BoardConfigurations( object ):
             # no available positions
             return
         for position in available_positions:
-            #print "Placing piece %s at position (%d, %d)" %(piece.name, position[0], position[1]) 
+            if len(piece_list) == self.piece_count:
+                # this is the first piece placed on board
+                # check if a simmetrical solution has already been found
+                if position in self.solution_tree:
+                    continue
             board.setPiecePosition(piece, position)
             # recursion
             self.setPieceList(piece_list[1:], board)
             if len(piece_list) == 1:
-                # append a copy of the current board configuration to the output_boards
-                #if not board.isEmpty():
-                self.output_boards[board.toString()] = 1 #deepcopy(board)
+                # append a copy of the current board configuration
+                # to the output_boards
+                self.output_boards[board.toString()] = 1
+                for simmetrical in board.toStringSimmetrical():
+                    self.output_boards[simmetrical] = 1
             board.removePiece(position)
+            if len(piece_list) == self.piece_count:
+                # this is the first piece placed on board
+                # insert this position and its simmetrical on solution_tree
+                self.solution_tree[(position[0], position[1])] = 1
+                self.solution_tree[((board._x_length - position[0]),
+                                    position[1])] = 1
+                self.solution_tree[(position[0], (board._y_length -
+                                                  position[1]))] = 1
+                self.solution_tree[((board._x_length -
+                                     position[0]),
+                                    (board._y_length - position[1]))] = 1
 
 
 if __name__ == '__main__':
@@ -95,9 +100,7 @@ if __name__ == '__main__':
     parser.add_option("-N", "--knights", dest="knights",
                       default=0,   type="int",
                       help="number of knights on the board")
-   
     (options, args) = parser.parse_args()
-    
     kings = options.kings
     queens = options.queens
     bishops = options.bishops
@@ -105,8 +108,9 @@ if __name__ == '__main__':
     knights = options.knights
     x = options.x
     y = options.y
-    print "Using board %dx%d" %(x, y)
-    print "Placing kings: %d, queens: %s, bishops: %d, rooks: %s, knights: %d" %(kings, queens, bishops, rooks, knights)
+    print "Using board %dx%d" % (x, y)
+    print "Placing kings: %d, queens: %s, bishops: %d, rooks: %s, knights: %d"\
+        % (kings, queens, bishops, rooks, knights)
     factory = PieceFactory()
     piece_list = []
     if kings > 0:
@@ -124,7 +128,6 @@ if __name__ == '__main__':
         print "please insert an x axis > 0"
     if y <= 0:
         print "please insert an y axis > 0"
-    
     board = Board(x, y)
     configurations = BoardConfigurations(board, piece_list)
     configurations.setPieceList(piece_list, board)
@@ -134,55 +137,4 @@ if __name__ == '__main__':
     for b in output_boards:
         print "board:"
         configurations.printBoardConfiguration(b)
-
-    
-    
-
-#     board = Board(3, 3)
-#     factory = PieceFactory()
-#     piece_list = factory.newPiece('king', 2) + factory.newPiece('rook',1) 
-#     configurations = BoardConfigurations(board, piece_list)
-#     configurations.setPieceList(piece_list, board)
-#     output_boards = configurations.getOutputBoardList()
-#     for b in output_boards:
-#         print "board:"
-#         print b
-# #        print output_boards[b].toString()
-
-
-#     board = Board(4, 4)
-#     factory = PieceFactory()
-#     piece_list = factory.newPiece('rook', 2) + factory.newPiece('knight',4) 
-#     configurations = BoardConfigurations(board, piece_list)
-#     configurations.setPieceList(piece_list, board)
-#     output_boards = configurations.getOutputBoardList()
-#     for b in output_boards:
-#         print "board:"
-#         print b
-#         #print output_boards[b].toString()
-
-
-#     board = Board(6, 9)
-#     factory = PieceFactory()
-#     piece_list = factory.newPiece('king', 2) + factory.newPiece('queen', 1) + factory.newPiece('bishop', 1) \
-#         + factory.newPiece('rook', 1) + factory.newPiece('knight', 1) 
-#     configurations = BoardConfigurations(board, piece_list)
-#     configurations.setPieceList(piece_list, board)
-#     output_boards = configurations.getOutputBoardList()
-#     for b in output_boards:
-#         print "board:"
-#         #print output_boards[b].toString()
-#         print b
-    
-#     print "Found %d unique configurations." % len(output_boards)
-    
-
-
-    #for output_board in output_board_list:
-    #    print "---------------------"
-    #    print output_board.printPlacedPieces()
-    # board = Board(6, 6)
-    # factory = PieceFactory()
-    # piece_list = [factory.newPiece('rook'), factory.newPiece('rook'), factory.newPiece('knight'), 
-    #               factory.newPiece('knight'), factory.newPiece('knight'), factory.newPiece('knight')]
-    # setPieceList(piece_list, board) 
+    print "Found %d unique configurations." % len(output_boards)
