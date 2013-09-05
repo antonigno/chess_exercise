@@ -20,7 +20,7 @@ other.
 Usage:
 python ./setPieces.py, specifying the board dimensions with options -x and -y, the pieces count with -K (--kings), 
 -Q (--queens), -B (--bishops), -R (--rooks), -N (--knights)
-if not passed, the piece count is defaulted to 0
+if not passed, the piece count is defaulted to 0, and the board is defaulted to 8x8
 
 example:
 
