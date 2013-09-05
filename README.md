@@ -25,3 +25,5 @@ if not passed, the piece count is defaulted to 0, and the board is defaulted to 
 example:
 
 python ./setPieces.py -x 6 -y 9 -K 2 -Q 1 -B 1 -R 1 -N 1
+
+for this specific parameters the number of unique configurations is 20136752.
